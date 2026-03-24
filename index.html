@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InfoFilter — Aprende a leer el mundo</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       NAVBAR
+  ═══════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="nav-logo">InfoFilter<span class="dot">.</span></div>
+    <ul class="nav-links">
+      <li><a href="#problema">El problema</a></li>
+      <li><a href="#programa">El programa</a></li>
+      <li><a href="#modulos">Módulos</a></li>
+      <li><a href="#estadisticas">Datos</a></li>
+      <li><a href="#inscripcion" class="nav-cta">Únete</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Abrir menú">☰</button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════
+       HERO
+  ═══════════════════════════════════════════ -->
+  <section class="hero" id="inicio">
+    <div class="hero-noise"></div>
+    <div class="hero-grid-bg"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Alfabetización digital crítica</p>
+      <h1 class="hero-title">
+        No todo lo que<br/>
+        <span class="hero-title-accent">lees es verdad.</span>
+      </h1>
+      <p class="hero-subtitle">
+        Aprende a navegar el ruido informativo, identificar desinformación y tomar decisiones basadas en evidencia real.
+      </p>
+      <div class="hero-actions">
+        <a href="#programa" class="btn btn-primary">Conocer el programa</a>
+        <a href="#modulos" class="btn btn-ghost">Ver módulos →</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="signal-display">
+        <div class="signal-label">Flujo de información en tiempo real</div>
+        <div class="signal-bars">
+          <div class="bar bar-fake"><span>Falso</span></div>
+          <div class="bar bar-dudoso"><span>Dudoso</span></div>
+          <div class="bar bar-real"><span>Verificado</span></div>
+          <div class="bar bar-opinion"><span>Opinión</span></div>
+        </div>
+        <div class="signal-counter">
+          <span class="counter-num" id="counterNum">0</span>
+          <span class="counter-label">publicaciones analizadas hoy</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       PROBLEMA
+  ═══════════════════════════════════════════ -->
+  <section class="problema" id="problema">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-tag">¿Por qué importa?</p>
+        <h2 class="section-title">El ecosistema de la desinformación</h2>
+      </div>
+      <div class="problema-grid">
+
+        <!-- Tarjeta problema — edita el contenido aquí -->
+        <div class="problema-card">
+          <div class="card-icon">⚡</div>
+          <h3>Velocidad vs. Verdad</h3>
+          <p>Una noticia falsa se comparte 6 veces más rápido que una verificada, según estudios del MIT. La urgencia emocional supera al pensamiento crítico.</p>
+        </div>
+
+        <div class="problema-card featured">
+          <div class="card-icon">🧠</div>
+          <h3>Sesgos cognitivos</h3>
+          <p>Nuestro cerebro está diseñado para confirmar lo que ya creemos. El sesgo de confirmación nos hace vulnerables a cámaras de eco y algoritmos que nos encierran en burbujas informativas.</p>
+        </div>
+
+        <div class="problema-card">
+          <div class="card-icon">📱</div>
+          <h3>Saturación digital</h3>
+          <p>El ciudadano promedio recibe más de 10,000 mensajes de información al día. Sin herramientas de filtro, es imposible distinguir lo relevante de lo manipulado.</p>
+        </div>
+
+        <div class="problema-card">
+          <div class="card-icon">🌐</div>
+          <h3>Consecuencias reales</h3>
+          <p>La desinformación afecta decisiones de salud, voto, economía y relaciones sociales. No es un problema abstracto: tiene impacto directo en la vida de las personas.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       ESTADÍSTICAS
+  ═══════════════════════════════════════════ -->
+  <section class="estadisticas" id="estadisticas">
+    <div class="container">
+      <div class="stats-grid">
+
+        <!-- Estadística — edita el número y descripción aquí -->
+        <div class="stat-item">
+          <span class="stat-num">86<span class="stat-unit">%</span></span>
+          <p class="stat-desc">de adultos ha compartido alguna vez noticias falsas sin saberlo</p>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-num">3.8<span class="stat-unit">B</span></span>
+          <p class="stat-desc">personas usan redes sociales como su principal fuente de noticias</p>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-num">70<span class="stat-unit">%</span></span>
+          <p class="stat-desc">de los jóvenes no sabe distinguir un artículo de opinión de uno noticioso</p>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-num">6<span class="stat-unit">x</span></span>
+          <p class="stat-desc">más rápido se propaga la desinformación que los hechos verificados</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       PROGRAMA
+  ═══════════════════════════════════════════ -->
+  <section class="programa" id="programa">
+    <div class="container">
+      <div class="programa-intro">
+        <div class="section-header left-aligned">
+          <p class="section-tag">El programa</p>
+          <h2 class="section-title">InfoFilter: metodología de filtrado crítico</h2>
+        </div>
+        <p class="programa-desc">
+          InfoFilter es un programa de alfabetización mediática basado en evidencia. Combina teoría cognitiva, verificación de hechos y práctica contextualizada para que cada participante desarrolle un sistema propio de análisis de información.
+        </p>
+        <div class="programa-pilares">
+
+          <!-- Pilar del programa — edita el título e ícono aquí -->
+          <div class="pilar">
+            <span class="pilar-icon">🔍</span>
+            <span class="pilar-text">Pensamiento crítico</span>
+          </div>
+          <div class="pilar">
+            <span class="pilar-icon">✅</span>
+            <span class="pilar-text">Verificación de fuentes</span>
+          </div>
+          <div class="pilar">
+            <span class="pilar-icon">📊</span>
+            <span class="pilar-text">Lectura de datos</span>
+          </div>
+          <div class="pilar">
+            <span class="pilar-icon">🗣️</span>
+            <span class="pilar-text">Comunicación responsable</span>
+          </div>
+
+        </div>
+      </div>
+      <div class="programa-visual">
+        <div class="metodologia-card">
+          <div class="met-step">
+            <div class="met-num">01</div>
+            <div class="met-info">
+              <strong>Recibe</strong>
+              <p>Identificas el mensaje, su fuente y contexto original.</p>
+            </div>
+          </div>
+          <div class="met-arrow">↓</div>
+          <div class="met-step">
+            <div class="met-num">02</div>
+            <div class="met-info">
+              <strong>Cuestiona</strong>
+              <p>Aplicas las preguntas clave: ¿quién lo publica? ¿cuándo? ¿con qué evidencia?</p>
+            </div>
+          </div>
+          <div class="met-arrow">↓</div>
+          <div class="met-step">
+            <div class="met-num">03</div>
+            <div class="met-info">
+              <strong>Verifica</strong>
+              <p>Cruzas con fuentes primarias y herramientas de fact-checking.</p>
+            </div>
+          </div>
+          <div class="met-arrow">↓</div>
+          <div class="met-step">
+            <div class="met-num">04</div>
+            <div class="met-info">
+              <strong>Actúa</strong>
+              <p>Compartes con responsabilidad o detienes la cadena de desinformación.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       MÓDULOS DEL PROGRAMA
+       Para agregar un módulo nuevo: duplica un bloque .modulo-card
+  ═══════════════════════════════════════════ -->
+  <section class="modulos" id="modulos">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-tag">Contenido del programa</p>
+        <h2 class="section-title">Módulos de aprendizaje</h2>
+      </div>
+      <div class="modulos-grid">
+
+        <!-- ══ MÓDULO 1 — Edita título, descripción, duración y temas ══ -->
+        <div class="modulo-card">
+          <div class="modulo-header">
+            <span class="modulo-num">01</span>
+            <span class="modulo-duracion">2 semanas</span>
+          </div>
+          <h3 class="modulo-titulo">Fundamentos del pensamiento crítico</h3>
+          <p class="modulo-desc">Comprender cómo funciona nuestra mente al procesar información y qué sesgos nos hacen vulnerables a la manipulación.</p>
+          <ul class="modulo-temas">
+            <li>Sesgos cognitivos comunes</li>
+            <li>El ciclo de información-emoción</li>
+            <li>Cámaras de eco y burbujas algorítmicas</li>
+            <li>Ejercicios prácticos de autoconocimiento</li>
+          </ul>
+          <div class="modulo-footer">
+            <span class="modulo-nivel nivel-basico">Básico</span>
+          </div>
+        </div>
+
+        <!-- ══ MÓDULO 2 ══ -->
+        <div class="modulo-card">
+          <div class="modulo-header">
+            <span class="modulo-num">02</span>
+            <span class="modulo-duracion">3 semanas</span>
+          </div>
+          <h3 class="modulo-titulo">Anatomía de una noticia falsa</h3>
+          <p class="modulo-desc">Aprende a diseccionar un contenido informativo: cómo está construido, qué emociones activa y qué señales de alerta debes detectar.</p>
+          <ul class="modulo-temas">
+            <li>Tipos de desinformación (fake news, satíra, propaganda)</li>
+            <li>Técnicas de manipulación de titulares</li>
+            <li>Imágenes fuera de contexto</li>
+            <li>Deepfakes y contenido sintético</li>
+          </ul>
+          <div class="modulo-footer">
+            <span class="modulo-nivel nivel-basico">Básico</span>
+          </div>
+        </div>
+
+        <!-- ══ MÓDULO 3 ══ -->
+        <div class="modulo-card">
+          <div class="modulo-header">
+            <span class="modulo-num">03</span>
+            <span class="modulo-duracion">3 semanas</span>
+          </div>
+          <h3 class="modulo-titulo">Verificación de fuentes y datos</h3>
+          <p class="modulo-desc">Herramientas y metodologías profesionales para comprobar la veracidad de cualquier afirmación antes de creerla o compartirla.</p>
+          <ul class="modulo-temas">
+            <li>Fact-checking: herramientas y metodología</li>
+            <li>Búsqueda inversa de imágenes</li>
+            <li>Cómo leer estudios científicos</li>
+            <li>Evaluación de credibilidad de medios</li>
+          </ul>
+          <div class="modulo-footer">
+            <span class="modulo-nivel nivel-intermedio">Intermedio</span>
+          </div>
+        </div>
+
+        <!-- ══ MÓDULO 4 ══ -->
+        <div class="modulo-card">
+          <div class="modulo-header">
+            <span class="modulo-num">04</span>
+            <span class="modulo-duracion">2 semanas</span>
+          </div>
+          <h3 class="modulo-titulo">Información en contexto político y social</h3>
+          <p class="modulo-desc">Cómo la información se usa como herramienta de poder: propaganda, desinformación política y cómo mantenerse informado sin dejarse manipular.</p>
+          <ul class="modulo-temas">
+            <li>Propaganda histórica y contemporánea</li>
+            <li>Análisis de discurso político</li>
+            <li>Verificación en épocas electorales</li>
+            <li>Fuentes institucionales y su evaluación</li>
+          </ul>
+          <div class="modulo-footer">
+            <span class="modulo-nivel nivel-intermedio">Intermedio</span>
+          </div>
+        </div>
+
+        <!-- ══ MÓDULO 5 ══ -->
+        <div class="modulo-card">
+          <div class="modulo-header">
+            <span class="modulo-num">05</span>
+            <span class="modulo-duracion">2 semanas</span>
+          </div>
+          <h3 class="modulo-titulo">Salud y ciencia: cómo informarte bien</h3>
+          <p class="modulo-desc">Navegar el ecosistema de información médica y científica: distinguir consenso científico de pseudociencia y teorías conspirativas.</p>
+          <ul class="modulo-temas">
+            <li>Cómo funciona el consenso científico</li>
+            <li>Señales de pseudociencia</li>
+            <li>Desinformación en salud pública</li>
+            <li>Fuentes médicas confiables</li>
+          </ul>
+          <div class="modulo-footer">
+            <span class="modulo-nivel nivel-avanzado">Avanzado</span>
+          </div>
+        </div>
+
+        <!-- ══ MÓDULO 6 ══ -->
+        <div class="modulo-card">
+          <div class="modulo-header">
+            <span class="modulo-num">06</span>
+            <span class="modulo-duracion">2 semanas</span>
+          </div>
+          <h3 class="modulo-titulo">Comunicación responsable y ciudadanía digital</h3>
+          <p class="modulo-desc">Cómo compartir, publicar y comunicar en redes sociales con responsabilidad ética y contribuir a un ecosistema informativo más sano.</p>
+          <ul class="modulo-temas">
+            <li>Ética del compartir</li>
+            <li>Cómo corregir sin polarizar</li>
+            <li>Construcción de hábitos informativos</li>
+            <li>Proyecto final: tu mapa de fuentes</li>
+          </ul>
+          <div class="modulo-footer">
+            <span class="modulo-nivel nivel-avanzado">Avanzado</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       HERRAMIENTAS
+  ═══════════════════════════════════════════ -->
+  <section class="herramientas" id="herramientas">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-tag">Kit de verificación</p>
+        <h2 class="section-title">Herramientas que aprenderás a usar</h2>
+      </div>
+      <div class="tools-grid">
+
+        <!-- Herramienta — edita nombre, descripción y URL -->
+        <a class="tool-card" href="https://www.snopes.com" target="_blank" rel="noopener">
+          <span class="tool-icon">🔎</span>
+          <strong>Snopes</strong>
+          <p>Base de datos de rumores y noticias verificadas con metodología transparente.</p>
+        </a>
+
+        <a class="tool-card" href="https://images.google.com" target="_blank" rel="noopener">
+          <span class="tool-icon">🖼️</span>
+          <strong>Búsqueda inversa</strong>
+          <p>Verifica si una imagen fue tomada en el contexto que se presenta o es antigua.</p>
+        </a>
+
+        <a class="tool-card" href="https://www.politifact.com" target="_blank" rel="noopener">
+          <span class="tool-icon">⚖️</span>
+          <strong>PolitiFact</strong>
+          <p>Verificación de declaraciones políticas con escala de veracidad detallada.</p>
+        </a>
+
+        <a class="tool-card" href="https://www.poynter.org/ifcn/" target="_blank" rel="noopener">
+          <span class="tool-icon">🌍</span>
+          <strong>IFCN</strong>
+          <p>Red internacional de verificadores de hechos con estándares periodísticos.</p>
+        </a>
+
+        <a class="tool-card" href="https://mediabiascheck.com" target="_blank" rel="noopener">
+          <span class="tool-icon">📰</span>
+          <strong>Media Bias</strong>
+          <p>Evalúa la tendencia ideológica y confiabilidad de medios de comunicación.</p>
+        </a>
+
+        <a class="tool-card" href="https://archive.org" target="_blank" rel="noopener">
+          <span class="tool-icon">🗄️</span>
+          <strong>Wayback Machine</strong>
+          <p>Accede a versiones históricas de páginas web para rastrear cambios de contenido.</p>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       INSCRIPCIÓN / CTA
+  ═══════════════════════════════════════════ -->
+  <section class="inscripcion" id="inscripcion">
+    <div class="container">
+      <div class="cta-box">
+        <p class="section-tag light">Empieza hoy</p>
+        <h2 class="cta-title">Conviértete en un lector crítico</h2>
+        <p class="cta-desc">El programa es gratuito, autodidacta y diseñado para cualquier persona con acceso a internet. Sin requisitos previos.</p>
+        <form class="cta-form" onsubmit="handleFormSubmit(event)">
+          <input type="email" placeholder="tu@correo.com" class="cta-input" required />
+          <button type="submit" class="btn btn-primary">Quiero inscribirme</button>
+        </form>
+        <p class="cta-note">Sin spam. Puedes darte de baja cuando quieras.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">InfoFilter<span class="dot">.</span></div>
+          <p>Alfabetización mediática para el siglo XXI. Porque informarse bien es un acto de resistencia.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Programa</h4>
+          <ul>
+            <li><a href="#problema">El problema</a></li>
+            <li><a href="#programa">Metodología</a></li>
+            <li><a href="#modulos">Módulos</a></li>
+            <li><a href="#herramientas">Herramientas</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Comunidad</h4>
+          <ul>
+            <!-- Agrega aquí tus redes sociales o links adicionales -->
+            <li><a href="#">Newsletter</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Eventos</a></li>
+            <li><a href="#">Contacto</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 InfoFilter. Hecho con propósito.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
