@@ -19,7 +19,9 @@
       <li><a href="#programa">El programa</a></li>
       <li><a href="#modulos">Módulos</a></li>
       <li><a href="#estadisticas">Datos</a></li>
+      <li><a href="#diagnostico">Test</a></li>
       <li><a href="#inscripcion" class="nav-cta">Únete</a></li>
+
     </ul>
     <button class="nav-toggle" aria-label="Abrir menú">☰</button>
   </nav>
@@ -41,7 +43,7 @@
       </p>
       <div class="hero-actions">
         <a href="#programa" class="btn btn-primary">Conocer el programa</a>
-        <a href="#modulos" class="btn btn-ghost">Ver módulos →</a>
+        <button class="btn btn-ghost" onclick="openSurvey()">🧠 Hacer el test →</button>
       </div>
     </div>
     <div class="hero-visual">
@@ -387,6 +389,90 @@
       </div>
     </div>
   </section>
+
+  <!-- ═══════════════════════════════════════════
+       DIAGNÓSTICO — CTA banner que abre el test
+  ═══════════════════════════════════════════ -->
+  <section class="diagnostico-cta" id="diagnostico">
+    <div class="container">
+      <div class="diag-banner">
+        <div class="diag-banner-left">
+          <p class="section-tag">Test gratuito · 3 minutos</p>
+          <h2 class="diag-banner-title">¿Qué tan buen filtro eres?</h2>
+          <p class="diag-banner-desc">Descubre tu nivel real de alfabetización mediática. Evaluarás noticias reales y falsas, revelarás tus hábitos y recibirás un diagnóstico personalizado con recomendaciones concretas.</p>
+          <div class="diag-banner-meta">
+            <span>📋 10 preguntas</span>
+            <span>⚡ Resultado inmediato</span>
+            <span>🎯 Diagnóstico personalizado</span>
+          </div>
+          <button class="btn btn-primary diag-open-btn" onclick="openSurvey()">
+            Comenzar el diagnóstico
+          </button>
+        </div>
+        <div class="diag-banner-right">
+          <div class="diag-preview-card">
+            <div class="dpc-label">EJEMPLO DE PREGUNTA</div>
+            <p class="dpc-question">"La OMS confirmó que el wifi 5G es responsable de aumentar el riesgo de cáncer en un 40%."</p>
+            <div class="dpc-options">
+              <div class="dpc-opt">✓ Verdadero</div>
+              <div class="dpc-opt correct">✗ Falso — desinformación</div>
+            </div>
+            <div class="dpc-hint">¿Hubieras identificado esto?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL ENCUESTA DIAGNÓSTICA
+       Las preguntas se editan en main.js → SURVEY_DATA
+  ═══════════════════════════════════════════ -->
+  <div class="survey-overlay" id="surveyOverlay" role="dialog" aria-modal="true" aria-label="Encuesta diagnóstica">
+    <div class="survey-modal" id="surveyModal">
+
+      <!-- Botón cerrar -->
+      <button class="survey-close" onclick="closeSurvey()" aria-label="Cerrar encuesta">✕</button>
+
+      <!-- PANTALLA 1: Bienvenida -->
+      <div class="survey-screen active" id="screenStart">
+        <div class="survey-start-inner">
+          <div class="survey-badge">🧠 Diagnóstico InfoFilter</div>
+          <h2 class="survey-title">¿Cuánto sabes filtrar<br/><span class="acc">información?</span></h2>
+          <p class="survey-intro-text">En 10 preguntas mediremos tu capacidad real para identificar desinformación, evaluar fuentes y aplicar pensamiento crítico. Sin trampa, sin juicio.</p>
+          <div class="survey-start-stats">
+            <div class="ss-stat"><span class="ss-num">10</span><span class="ss-lbl">preguntas</span></div>
+            <div class="ss-stat"><span class="ss-num">~3'</span><span class="ss-lbl">duración</span></div>
+            <div class="ss-stat"><span class="ss-num">5</span><span class="ss-lbl">niveles</span></div>
+          </div>
+          <button class="btn btn-primary" onclick="startSurvey()">Empezar ahora →</button>
+        </div>
+      </div>
+
+      <!-- PANTALLA 2: Preguntas -->
+      <div class="survey-screen" id="screenQuestions">
+        <div class="survey-progress-wrap">
+          <div class="survey-progress-bar"><div class="survey-progress-fill" id="surveyProgressFill"></div></div>
+          <span class="survey-progress-label" id="surveyProgressLabel">1 / 10</span>
+        </div>
+        <div class="survey-question-area" id="surveyQuestionArea">
+          <!-- Inyectado por JS -->
+        </div>
+        <div class="survey-nav">
+          <button class="btn btn-ghost" id="btnPrev" onclick="prevQuestion()">← Anterior</button>
+          <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- PANTALLA 3: Resultados -->
+      <div class="survey-screen" id="screenResults">
+        <div class="survey-results-inner" id="surveyResultsInner">
+          <!-- Inyectado por JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ═══════════════════════════════════════════
        INSCRIPCIÓN / CTA
