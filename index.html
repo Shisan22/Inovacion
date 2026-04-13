@@ -529,6 +529,11 @@
     </div>
   </footer>
 
-  <script type="module" src="main.js"></script>
+  <!-- Firebase SDK (compat — funciona con scripts normales, sin import/module) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Lógica principal del sitio y la encuesta -->
+  <script src="main.js"></script>
 </body>
 </html>
