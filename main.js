@@ -31,21 +31,15 @@ function initFirebase() {
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.firestore();
+    registerPageVisit();
     loadResponseCount();
+    loadVisitCount();
   } catch (err) {
     console.warn('Firebase no configurado:', err.message);
   }
 }
 
-async function loadResponseCount() {
-  if (!db) return;
-  try {
-    var snap  = await db.collection('survey_responses').get();
-    var el    = document.getElementById('surveyResponseCount');
-    if (el) animateNumber(el, 0, snap.size, 1200);
-  } catch (e) { /* sin datos aún */ }
-}
-
+// ── Animación de número ──────────────────────────────────────
 function animateNumber(el, from, to, dur) {
   var start = Date.now();
   function step() {
@@ -57,22 +51,115 @@ function animateNumber(el, from, to, dur) {
   requestAnimationFrame(step);
 }
 
-async function saveSurveyResponse(payload) {
+// ── Limpiar objeto para Firestore (elimina undefined/funciones) ─
+function sanitizeForFirestore(obj) {
+  if (obj === null || obj === undefined) return null;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeForFirestore);
+  var clean = {};
+  Object.keys(obj).forEach(function(k) {
+    var v = obj[k];
+    if (typeof v === 'function') return;
+    if (v === undefined) { clean[k] = null; return; }
+    clean[k] = (typeof v === 'object' && v !== null) ? sanitizeForFirestore(v) : v;
+  });
+  return clean;
+}
+
+// ── Registrar visita de página ────────────────────────────────
+async function registerPageVisit() {
   if (!db) return;
   try {
-    await db.collection('survey_responses').add({
-      timestamp:      firebase.firestore.FieldValue.serverTimestamp(),
-      score:          payload.score,
-      level:          payload.level,
-      audience:       payload.audience,
-      dimensions:     payload.dimensions,
-      answers:        payload.answers,
-      completionTime: payload.completionTime,
-      userAgent:      navigator.userAgent.substring(0, 120)
+    // Contador atómico en un solo documento
+    await db.collection('stats').doc('page_visits').set({
+      total: firebase.firestore.FieldValue.increment(1),
+      last_visit: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    // También guarda un log individual por visita
+    await db.collection('page_visits').add({
+      timestamp:  firebase.firestore.FieldValue.serverTimestamp(),
+      userAgent:  navigator.userAgent.substring(0, 120),
+      referrer:   document.referrer || 'directo',
+      url:        window.location.href
     });
-    loadResponseCount();
+
+    loadVisitCount();
   } catch (err) {
-    console.error('Error guardando:', err.message);
+    console.warn('No se pudo registrar visita:', err.message);
+  }
+}
+
+// ── Cargar y mostrar contadores ───────────────────────────────
+async function loadResponseCount() {
+  if (!db) return;
+  try {
+    var doc = await db.collection('stats').doc('survey_count').get();
+    var el  = document.getElementById('surveyResponseCount');
+    if (el && doc.exists) animateNumber(el, 0, doc.data().total || 0, 1200);
+  } catch (e) { /* sin datos aún */ }
+}
+
+async function loadVisitCount() {
+  if (!db) return;
+  try {
+    var doc = await db.collection('stats').doc('page_visits').get();
+    var el  = document.getElementById('pageVisitCount');
+    if (el && doc.exists) animateNumber(el, 0, doc.data().total || 0, 1200);
+  } catch (e) { /* silencioso */ }
+}
+
+// ── Guardar respuesta completa en Firestore ───────────────────
+async function saveSurveyResponse(payload) {
+  if (!db) {
+    console.warn('Firebase no listo — respuesta no guardada');
+    return;
+  }
+  try {
+    // Serializar respuestas de forma segura
+    var answersClean = {};
+    Object.keys(payload.answers).forEach(function(qid) {
+      var a = payload.answers[qid];
+      answersClean['q' + qid] = sanitizeForFirestore({
+        type:    SURVEY_DATA.filter(function(q){ return q.id === Number(qid); })[0]
+                   ? SURVEY_DATA.filter(function(q){ return q.id === Number(qid); })[0].type
+                   : 'unknown',
+        correct: a.correct === true ? true : a.correct === false ? false : null,
+        points:  typeof a.points === 'number' ? a.points : 0,
+        chosen:  typeof a.chosen === 'number' ? a.chosen : null,
+        choices: Array.isArray(a.choices) ? a.choices : null
+      });
+    });
+
+    // Crear documento nuevo con ID automático
+    var ref = await db.collection('survey_responses').add({
+      timestamp:      firebase.firestore.FieldValue.serverTimestamp(),
+      score:          Number(payload.score),
+      level:          String(payload.level),
+      audience:       String(payload.audience),
+      completionTime: payload.completionTime ? Number(payload.completionTime) : null,
+      userAgent:      navigator.userAgent.substring(0, 120),
+      dimensions: {
+        deteccion: Number(payload.dimensions.deteccion || 0),
+        habitos:   Number(payload.dimensions.habitos   || 0),
+        fuentes:   Number(payload.dimensions.fuentes   || 0),
+        sesgos:    Number(payload.dimensions.sesgos    || 0)
+      },
+      answers: answersClean
+    });
+
+    console.info('✅ Respuesta guardada con ID:', ref.id);
+
+    // Incrementar contador atómico de respuestas
+    await db.collection('stats').doc('survey_count').set({
+      total: firebase.firestore.FieldValue.increment(1),
+      last_response: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    loadResponseCount();
+
+  } catch (err) {
+    console.error('❌ Error al guardar respuesta:', err.message, err);
   }
 }
 
