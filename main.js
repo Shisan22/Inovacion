@@ -1,16 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════
    InfoFilter — main.js
-   Sin ES modules — funciona con scripts normales en el HTML.
-   Firebase se carga vía CDN compat antes de este archivo.
    ─────────────────────────────────────────────────────────────
-   PARA CONFIGURAR FIREBASE edita el bloque FIREBASE_CONFIG abajo
-   y sigue los pasos del archivo SETUP.md
+   Para configurar Firebase edita FIREBASE_CONFIG y sigue SETUP.md
    ═══════════════════════════════════════════════════════════════ */
 
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  🔧 CONFIGURACIÓN FIREBASE — EDITA ESTOS VALORES            ║
 // ╚══════════════════════════════════════════════════════════════╝
-var FIREBASE_CONFIG = {
+var firebaseConfig = {
   apiKey: "AIzaSyCtvvtBQYAIVKA7kX2qZLpcZ3YvMda4MNA",
   authDomain: "infofilter-encuesta.firebaseapp.com",
   projectId: "infofilter-encuesta",
@@ -20,33 +17,33 @@ var FIREBASE_CONFIG = {
 };
 
 /* ══════════════════════════════════════════════════════════════
-   FIREBASE — inicialización con SDK compat (sin import/module)
+   FIREBASE — se inicializa cuando el SDK esté disponible
+   (los scripts de Firebase se cargan async desde index.html)
    ══════════════════════════════════════════════════════════════ */
 var db = null;
 
 function initFirebase() {
+  if (typeof firebase === 'undefined') {
+    // Firebase aún no cargó (async) — reintentamos en 500ms
+    setTimeout(initFirebase, 500);
+    return;
+  }
   try {
-    if (typeof firebase === 'undefined') {
-      console.warn("Firebase SDK no encontrado. Revisa los scripts en index.html.");
-      return;
-    }
-    firebase.initializeApp(FIREBASE_CONFIG);
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.firestore();
-    console.info("✅ Firebase conectado");
     loadResponseCount();
   } catch (err) {
-    console.warn("⚠️ Firebase no configurado aún:", err.message);
+    console.warn('Firebase no configurado:', err.message);
   }
 }
 
 async function loadResponseCount() {
   if (!db) return;
   try {
-    var snap  = await db.collection("survey_responses").get();
-    var count = snap.size;
-    var el    = document.getElementById("surveyResponseCount");
-    if (el) animateNumber(el, 0, count, 1200);
-  } catch (e) { /* sin datos aún — silencioso */ }
+    var snap  = await db.collection('survey_responses').get();
+    var el    = document.getElementById('surveyResponseCount');
+    if (el) animateNumber(el, 0, snap.size, 1200);
+  } catch (e) { /* sin datos aún */ }
 }
 
 function animateNumber(el, from, to, dur) {
@@ -54,16 +51,16 @@ function animateNumber(el, from, to, dur) {
   function step() {
     var p    = Math.min((Date.now() - start) / dur, 1);
     var ease = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.floor(from + (to - from) * ease).toLocaleString("es-CO");
+    el.textContent = Math.floor(from + (to - from) * ease).toLocaleString('es-CO');
     if (p < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
 async function saveSurveyResponse(payload) {
-  if (!db) return null;
+  if (!db) return;
   try {
-    var ref = await db.collection("survey_responses").add({
+    await db.collection('survey_responses').add({
       timestamp:      firebase.firestore.FieldValue.serverTimestamp(),
       score:          payload.score,
       level:          payload.level,
@@ -74,92 +71,14 @@ async function saveSurveyResponse(payload) {
       userAgent:      navigator.userAgent.substring(0, 120)
     });
     loadResponseCount();
-    return ref.id;
   } catch (err) {
-    console.error("❌ Error guardando:", err.message);
-    return null;
+    console.error('Error guardando:', err.message);
   }
 }
 
-// Iniciar Firebase cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", initFirebase);
-
-
-/* ═══════════════════════════════════════════════
-   UI GENERAL — navbar, contador hero, scroll
-   ═══════════════════════════════════════════════ */
-
-(function heroCounter() {
-  var el = document.getElementById('counterNum');
-  if (!el) return;
-  var target = 1247893, dur = 2200, start = Date.now();
-  function step() {
-    var p = Math.min((Date.now()-start)/dur, 1);
-    var ease = 1 - Math.pow(1-p, 3);
-    el.textContent = Math.floor(ease*target).toLocaleString('es-CO');
-    if (p < 1) requestAnimationFrame(step);
-  }
-  setTimeout(function(){ requestAnimationFrame(step); }, 600);
-})();
-
-var navToggle = document.querySelector('.nav-toggle');
-var navLinks  = document.querySelector('.nav-links');
-if (navToggle) navToggle.addEventListener('click', function(){ navLinks.classList.toggle('open'); });
-if (navLinks) navLinks.querySelectorAll('a').forEach(function(l){
-  l.addEventListener('click', function(){ navLinks.classList.remove('open'); });
-});
-
-var navbar = document.querySelector('.navbar');
-window.addEventListener('scroll', function(){
-  if (navbar) navbar.style.boxShadow = window.scrollY > 20 ? '0 4px 32px rgba(0,0,0,0.4)' : 'none';
-});
-
-var obs = new IntersectionObserver(function(entries){
-  entries.forEach(function(e){
-    if (e.isIntersecting){
-      e.target.style.opacity    = '1';
-      e.target.style.transform  = 'translateY(0)';
-      obs.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
-
-document.querySelectorAll('.problema-card,.stat-item,.modulo-card,.tool-card,.met-step').forEach(function(el, i){
-  el.style.opacity    = '0';
-  el.style.transform  = 'translateY(24px)';
-  el.style.transition = 'opacity 0.5s ease '+(i*0.07)+'s, transform 0.5s ease '+(i*0.07)+'s';
-  obs.observe(el);
-});
-
-function handleFormSubmit(e) {
-  e.preventDefault();
-  var input = e.target.querySelector('.cta-input');
-  var btn   = e.target.querySelector('button');
-  btn.textContent    = '¡Listo! Te confirmaremos pronto ✓';
-  btn.style.background = 'var(--color-success)';
-  input.value = ''; input.disabled = true; btn.disabled = true;
-  setTimeout(function(){
-    btn.textContent     = 'Quiero inscribirme';
-    btn.style.background = '';
-    input.disabled = false; btn.disabled = false;
-  }, 5000);
-}
-
-var readBar = document.createElement('div');
-readBar.style.cssText = 'position:fixed;top:0;left:0;height:2px;background:var(--color-accent);z-index:200;transition:width 0.1s;width:0%;';
-document.body.appendChild(readBar);
-window.addEventListener('scroll', function(){
-  var pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
-  readBar.style.width = pct + '%';
-});
-
-
-/* ═══════════════════════════════════════════════════════════════
-   ENCUESTA DIAGNÓSTICA
-   ─ Para editar preguntas: modifica el array SURVEY_DATA abajo
-   ─ Tipos: 'news' | 'single' | 'multi' | 'scale'
-   ═══════════════════════════════════════════════════════════════ */
-
+/* ══════════════════════════════════════════════════════════════
+   DATOS DE LA ENCUESTA
+   ══════════════════════════════════════════════════════════════ */
 var SURVEY_DATA = [
   {
     id:1, type:'news', category:'deteccion', typeLabel:'🔍 Detecta la desinformación',
@@ -340,59 +259,133 @@ var RESULT_PROFILES = [
   }
 ];
 
-/* ─── ESTADO ─── */
+/* ══════════════════════════════════════════════════════════════
+   ESTADO DE LA ENCUESTA
+   ══════════════════════════════════════════════════════════════ */
 var surveyState = { current:0, answers:{}, totalScore:0, started:false, startTime:null };
 
-/* ─── ABRIR / CERRAR MODAL ─── */
+/* ══════════════════════════════════════════════════════════════
+   FUNCIONES GLOBALES DE LA ENCUESTA
+   Definidas en el scope global para que los onclick del HTML funcionen
+   ══════════════════════════════════════════════════════════════ */
+
 function openSurvey() {
-  document.getElementById('surveyOverlay').classList.add('open');
+  var el = document.getElementById('surveyOverlay');
+  if (!el) return;
+  el.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+
 function closeSurvey() {
-  document.getElementById('surveyOverlay').classList.remove('open');
+  var el = document.getElementById('surveyOverlay');
+  if (!el) return;
+  el.classList.remove('open');
   document.body.style.overflow = '';
 }
-document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeSurvey(); });
-var overlay = document.getElementById('surveyOverlay');
-if (overlay) overlay.addEventListener('click', function(e){ if (e.target.id === 'surveyOverlay') closeSurvey(); });
 
-/* ─── FLUJO DE LA ENCUESTA ─── */
 function startSurvey() {
   surveyState = { current:0, answers:{}, totalScore:0, started:true, startTime:Date.now() };
   showScreen('screenQuestions');
   renderQuestion(0);
 }
+
 function showScreen(id) {
   document.querySelectorAll('.survey-screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById(id).classList.add('active');
+  var target = document.getElementById(id);
+  if (target) target.classList.add('active');
 }
 
-/* ─── RENDERIZAR PREGUNTA ─── */
+function nextQuestion() {
+  var q = SURVEY_DATA[surveyState.current];
+  if (!surveyState.answers[q.id] && q.type !== 'multi' && q.type !== 'scale') {
+    shakeBtn('btnNext'); return;
+  }
+  if (surveyState.current < SURVEY_DATA.length - 1) {
+    surveyState.current++;
+    renderQuestion(surveyState.current);
+    var screen = document.getElementById('screenQuestions');
+    if (screen) screen.scrollTop = 0;
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion() {
+  if (surveyState.current > 0) { surveyState.current--; renderQuestion(surveyState.current); }
+}
+
+function restartSurvey() {
+  startSurvey();
+  var modal = document.getElementById('surveyModal');
+  if (modal) modal.scrollTop = 0;
+}
+
+function shakeBtn(id) {
+  var b = document.getElementById(id);
+  if (!b) return;
+  ['-6px','6px','-4px','0'].forEach(function(v, i){
+    setTimeout(function(){ b.style.transform = 'translateX('+v+')'; }, i*80);
+  });
+}
+
+function selectSingle(qid, idx, correct) {
+  if (surveyState.answers[qid]) return;
+  var q   = SURVEY_DATA.filter(function(x){ return x.id === qid; })[0];
+  var pts = correct ? (q.points || 10) : 0;
+  surveyState.answers[qid] = { chosen:idx, correct:correct, points:pts };
+  surveyState.totalScore  += pts;
+  renderQuestion(surveyState.current);
+}
+
+function toggleMulti(qid, idx, val) {
+  if (!surveyState.answers[qid]) surveyState.answers[qid] = { choices:[], points:0, correct:null };
+  var ans = surveyState.answers[qid];
+  var pos = ans.choices.indexOf(idx);
+  if (pos === -1) { ans.choices.push(idx); ans.points += val; surveyState.totalScore += val; }
+  else            { ans.choices.splice(pos,1); ans.points -= val; surveyState.totalScore -= val; }
+  renderQuestion(surveyState.current);
+}
+
+function selectScale(qid, idx, val) {
+  var prev = surveyState.answers[qid];
+  if (prev) surveyState.totalScore -= prev.points;
+  surveyState.answers[qid] = { chosen:idx, points:val, correct:null };
+  surveyState.totalScore  += val;
+  renderQuestion(surveyState.current);
+}
+
 function renderQuestion(idx) {
   var q     = SURVEY_DATA[idx];
   var total = SURVEY_DATA.length;
-  document.getElementById('surveyProgressFill').style.width  = Math.round((idx/total)*100) + '%';
-  document.getElementById('surveyProgressLabel').textContent = (idx+1) + ' / ' + total;
-  document.getElementById('btnPrev').style.visibility = idx === 0 ? 'hidden' : 'visible';
-  document.getElementById('btnNext').textContent = idx === total-1 ? 'Ver mis resultados →' : 'Siguiente →';
+  var fill  = document.getElementById('surveyProgressFill');
+  var label = document.getElementById('surveyProgressLabel');
+  var prev  = document.getElementById('btnPrev');
+  var next  = document.getElementById('btnNext');
+  var area  = document.getElementById('surveyQuestionArea');
+  if (!area) return;
 
-  var area = document.getElementById('surveyQuestionArea');
+  if (fill)  fill.style.width  = Math.round((idx/total)*100) + '%';
+  if (label) label.textContent = (idx+1) + ' / ' + total;
+  if (prev)  prev.style.visibility = idx === 0 ? 'hidden' : 'visible';
+  if (next)  next.textContent = idx === total-1 ? 'Ver mis resultados →' : 'Siguiente →';
+
   var ans  = surveyState.answers[q.id];
   var html = '<p class="q-type-label">' + q.typeLabel + '</p>';
 
   if (q.type === 'news' || q.type === 'single') {
     if (q.type === 'news') {
-      html += '<div class="q-news-card">"' + q.headline + '"<div class="q-news-source">🔗 ' + q.source + '</div></div>';
+      html += '<div class="q-news-card">&ldquo;' + q.headline + '&rdquo;'
+            + '<div class="q-news-source">🔗 ' + q.source + '</div></div>';
     }
     html += '<p class="q-text">' + q.question + '</p><div class="q-options">';
     q.options.forEach(function(opt, i){
-      var cls = 'q-option';
+      var cls      = 'q-option';
       if (ans) {
         if (opt.correct) cls += ' correct-reveal';
         else if (ans.chosen === i && !opt.correct) cls += ' wrong-reveal';
       }
-      var marker  = String.fromCharCode(65 + i);
       var disabled = ans ? 'disabled' : '';
+      var marker   = String.fromCharCode(65 + i);
       html += '<button class="' + cls + '" onclick="selectSingle(' + q.id + ',' + i + ',' + opt.correct + ')" ' + disabled + '>'
             + '<span class="q-option-marker">' + marker + '</span>' + opt.text + '</button>';
     });
@@ -426,56 +419,6 @@ function renderQuestion(idx) {
   area.innerHTML = html;
 }
 
-/* ─── SELECTORES DE RESPUESTA ─── */
-function selectSingle(qid, idx, correct) {
-  if (surveyState.answers[qid]) return;
-  var q   = SURVEY_DATA.filter(function(x){ return x.id === qid; })[0];
-  var pts = correct ? (q.points || 10) : 0;
-  surveyState.answers[qid] = { chosen:idx, correct:correct, points:pts };
-  surveyState.totalScore  += pts;
-  renderQuestion(surveyState.current);
-}
-function toggleMulti(qid, idx, val) {
-  if (!surveyState.answers[qid]) surveyState.answers[qid] = { choices:[], points:0, correct:null };
-  var ans = surveyState.answers[qid];
-  var pos = ans.choices.indexOf(idx);
-  if (pos === -1) { ans.choices.push(idx); ans.points += val; surveyState.totalScore += val; }
-  else            { ans.choices.splice(pos, 1); ans.points -= val; surveyState.totalScore -= val; }
-  renderQuestion(surveyState.current);
-}
-function selectScale(qid, idx, val) {
-  var prev = surveyState.answers[qid];
-  if (prev) surveyState.totalScore -= prev.points;
-  surveyState.answers[qid] = { chosen:idx, points:val, correct:null };
-  surveyState.totalScore  += val;
-  renderQuestion(surveyState.current);
-}
-
-/* ─── NAVEGACIÓN ─── */
-function nextQuestion() {
-  var q = SURVEY_DATA[surveyState.current];
-  if (!surveyState.answers[q.id] && q.type !== 'multi' && q.type !== 'scale') {
-    shakeBtn('btnNext'); return;
-  }
-  if (surveyState.current < SURVEY_DATA.length - 1) {
-    surveyState.current++;
-    renderQuestion(surveyState.current);
-    document.getElementById('screenQuestions').scrollTop = 0;
-  } else {
-    showResults();
-  }
-}
-function prevQuestion() {
-  if (surveyState.current > 0) { surveyState.current--; renderQuestion(surveyState.current); }
-}
-function shakeBtn(id) {
-  var b = document.getElementById(id);
-  ['-6px','6px','-4px','0'].forEach(function(v, i){
-    setTimeout(function(){ b.style.transform = 'translateX('+v+')'; }, i*80);
-  });
-}
-
-/* ─── CÁLCULO DE DIMENSIONES ─── */
 function calcDimensions() {
   var groups = {
     deteccion: SURVEY_DATA.filter(function(q){ return q.category==='deteccion'; }),
@@ -492,8 +435,7 @@ function calcDimensions() {
         if (a && a.correct) got += q.points||10;
       } else if (q.type==='multi') {
         var m = q.options.reduce(function(s,o){ return s+Math.max(0,o.value); }, 0);
-        max += m;
-        if (a) got += Math.max(0, a.points);
+        max += m; if (a) got += Math.max(0, a.points);
       } else if (q.type==='scale') {
         max += Math.max.apply(null, q.valueMap);
         if (a) got += a.points;
@@ -502,23 +444,19 @@ function calcDimensions() {
     return max > 0 ? Math.round((got/max)*100) : 0;
   }
   return {
-    deteccion: score(groups.deteccion),
-    habitos:   score(groups.habitos),
-    fuentes:   score(groups.fuentes),
-    sesgos:    score(groups.sesgos)
+    deteccion: score(groups.deteccion), habitos: score(groups.habitos),
+    fuentes:   score(groups.fuentes),   sesgos:  score(groups.sesgos)
   };
 }
 
-/* ─── MOSTRAR RESULTADOS + GUARDAR EN FIREBASE ─── */
 async function showResults() {
-  var maxP = SURVEY_DATA.reduce(function(acc, q){
+  var maxP = SURVEY_DATA.reduce(function(acc,q){
     if (q.type==='single'||q.type==='news') return acc+(q.points||10);
     if (q.type==='multi') return acc+q.options.reduce(function(s,o){ return s+Math.max(0,o.value); },0);
-    if (q.type==='scale') return acc+Math.max.apply(null, q.valueMap);
+    if (q.type==='scale') return acc+Math.max.apply(null,q.valueMap);
     return acc;
   }, 0);
-
-  var pct     = Math.min(100, Math.round((Math.max(0, surveyState.totalScore) / maxP) * 100));
+  var pct     = Math.min(100, Math.round((Math.max(0, surveyState.totalScore)/maxP)*100));
   var profile = RESULT_PROFILES.filter(function(p){ return pct>=p.minScore && pct<=p.maxScore; })[0]
                 || RESULT_PROFILES[RESULT_PROFILES.length-1];
   var dims    = calcDimensions();
@@ -530,44 +468,36 @@ async function showResults() {
   ];
   var secs = surveyState.startTime ? Math.round((Date.now()-surveyState.startTime)/1000) : null;
 
-  // Guardar en Firebase (en segundo plano — no bloquea la UI)
-  saveSurveyResponse({
-    score: pct, level: profile.level, audience: profile.audience,
-    dimensions: dims, answers: surveyState.answers, completionTime: secs
-  });
+  saveSurveyResponse({ score:pct, level:profile.level, audience:profile.audience,
+    dimensions:dims, answers:surveyState.answers, completionTime:secs });
 
-  var dimsHtml = dimArr.map(function(d){
+  var dimsHtml  = dimArr.map(function(d){
     return '<div class="result-dim-card">'
-      + '<div class="rdim-title">'+d.label+'</div>'
-      + '<div class="rdim-bar-bg"><div class="rdim-bar-fill" style="width:0%;background:'+d.color+';" data-pct="'+d.pct+'"></div></div>'
-      + '<div class="rdim-value">'+d.pct+'%</div>'
-      + '</div>';
+      +'<div class="rdim-title">'+d.label+'</div>'
+      +'<div class="rdim-bar-bg"><div class="rdim-bar-fill" style="width:0%;background:'+d.color+';" data-pct="'+d.pct+'"></div></div>'
+      +'<div class="rdim-value">'+d.pct+'%</div></div>';
   }).join('');
-
   var recosHtml = profile.recos.map(function(r){
     return '<div class="reco-item"><span class="reco-icon">'+r.icon+'</span><span>'+r.text+'</span></div>';
   }).join('');
 
-  document.getElementById('surveyResultsInner').innerHTML =
+  var container = document.getElementById('surveyResultsInner');
+  if (container) container.innerHTML =
     '<div class="result-header">'
-      + '<div class="result-level-icon">'+profile.icon+'</div>'
-      + '<h3 class="result-level-name">'+profile.level+'</h3>'
-      + '<div class="result-score-ring"><span class="result-score-num">'+pct+'</span><span class="result-score-lbl">/ 100</span></div>'
-      + '<p class="result-desc">'+profile.desc+'</p>'
-    + '</div>'
-    + '<div class="result-dimensions">'+dimsHtml+'</div>'
-    + '<div class="result-recos"><h4>🎯 Recomendaciones para ti</h4>'+recosHtml+'</div>'
-    + '<div class="result-cta">'
-      + '<h4>Está diseñado para ti</h4>'
-      + '<p>InfoFilter tiene un recorrido adaptado a tu nivel actual. Empieza hoy, a tu ritmo, sin costo.</p>'
-      + '<div class="result-cta-actions">'
-        + '<a href="#inscripcion" class="btn btn-primary" onclick="closeSurvey()">'+profile.ctaText+'</a>'
-        + '<button class="btn btn-ghost" onclick="restartSurvey()">Repetir el test</button>'
-      + '</div>'
-    + '</div>';
+      +'<div class="result-level-icon">'+profile.icon+'</div>'
+      +'<h3 class="result-level-name">'+profile.level+'</h3>'
+      +'<div class="result-score-ring"><span class="result-score-num">'+pct+'</span><span class="result-score-lbl">/ 100</span></div>'
+      +'<p class="result-desc">'+profile.desc+'</p></div>'
+    +'<div class="result-dimensions">'+dimsHtml+'</div>'
+    +'<div class="result-recos"><h4>🎯 Recomendaciones para ti</h4>'+recosHtml+'</div>'
+    +'<div class="result-cta"><h4>Está diseñado para ti</h4>'
+      +'<p>InfoFilter tiene un recorrido adaptado a tu nivel actual. Empieza hoy, a tu ritmo, sin costo.</p>'
+      +'<div class="result-cta-actions">'
+        +'<a href="#inscripcion" class="btn btn-primary" onclick="closeSurvey()">'+profile.ctaText+'</a>'
+        +'<button class="btn btn-ghost" onclick="restartSurvey()">Repetir el test</button>'
+      +'</div></div>';
 
   showScreen('screenResults');
-
   setTimeout(function(){
     document.querySelectorAll('.rdim-bar-fill').forEach(function(el){
       el.style.transition = 'width 0.9s ease';
@@ -576,7 +506,88 @@ async function showResults() {
   }, 150);
 }
 
-function restartSurvey() {
-  startSurvey();
-  document.getElementById('surveyModal').scrollTop = 0;
+/* ══════════════════════════════════════════════════════════════
+   SETUP DEL DOM — corre cuando el documento está listo
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+
+  // Firebase (con retry porque se carga async)
+  initFirebase();
+
+  // Contador animado del hero
+  var counterEl = document.getElementById('counterNum');
+  if (counterEl) {
+    var target = 1247893, dur = 2200, start = Date.now();
+    function heroStep() {
+      var p = Math.min((Date.now()-start)/dur, 1);
+      counterEl.textContent = Math.floor((1-Math.pow(1-p,3))*target).toLocaleString('es-CO');
+      if (p < 1) requestAnimationFrame(heroStep);
+    }
+    setTimeout(function(){ requestAnimationFrame(heroStep); }, 600);
+  }
+
+  // Navbar menú móvil
+  var navToggle = document.querySelector('.nav-toggle');
+  var navLinks  = document.querySelector('.nav-links');
+  if (navToggle) navToggle.addEventListener('click', function(){ navLinks.classList.toggle('open'); });
+  if (navLinks) navLinks.querySelectorAll('a').forEach(function(l){
+    l.addEventListener('click', function(){ navLinks.classList.remove('open'); });
+  });
+
+  // Navbar sombra al scroll
+  var navbar = document.querySelector('.navbar');
+  window.addEventListener('scroll', function(){
+    if (navbar) navbar.style.boxShadow = window.scrollY > 20 ? '0 4px 32px rgba(0,0,0,0.4)' : 'none';
+  });
+
+  // Animaciones de entrada con IntersectionObserver
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){
+        e.target.style.opacity   = '1';
+        e.target.style.transform = 'translateY(0)';
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold:0.1, rootMargin:'0px 0px -60px 0px' });
+
+  document.querySelectorAll('.problema-card,.stat-item,.modulo-card,.tool-card,.met-step').forEach(function(el,i){
+    el.style.opacity   = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.5s ease '+(i*0.07)+'s, transform 0.5s ease '+(i*0.07)+'s';
+    obs.observe(el);
+  });
+
+  // Barra de progreso de lectura
+  var readBar = document.createElement('div');
+  readBar.style.cssText = 'position:fixed;top:0;left:0;height:2px;background:var(--color-accent);z-index:9999;transition:width 0.1s;width:0%;pointer-events:none;';
+  document.body.appendChild(readBar);
+  window.addEventListener('scroll', function(){
+    var pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
+    readBar.style.width = (pct||0) + '%';
+  });
+
+  // Cerrar modal con Escape o clic fuera
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeSurvey(); });
+  var overlay = document.getElementById('surveyOverlay');
+  if (overlay) overlay.addEventListener('click', function(e){
+    if (e.target.id === 'surveyOverlay') closeSurvey();
+  });
+
+});
+
+// handleFormSubmit es llamado desde onsubmit en HTML — debe ser global
+function handleFormSubmit(e) {
+  e.preventDefault();
+  var input = e.target.querySelector('.cta-input');
+  var btn   = e.target.querySelector('button');
+  if (!input || !btn) return;
+  btn.textContent     = '¡Listo! Te confirmaremos pronto ✓';
+  btn.style.background = 'var(--color-success)';
+  input.value = ''; input.disabled = true; btn.disabled = true;
+  setTimeout(function(){
+    btn.textContent     = 'Quiero inscribirme';
+    btn.style.background = '';
+    input.disabled = false; btn.disabled = false;
+  }, 5000);
 }
