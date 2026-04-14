@@ -8,12 +8,12 @@
 // ║  🔧 CONFIGURACIÓN FIREBASE — EDITA ESTOS VALORES            ║
 // ╚══════════════════════════════════════════════════════════════╝
 var firebaseConfig = {
-  apiKey: "AIzaSyCtvvtBQYAIVKA7kX2qZLpcZ3YvMda4MNA",
-  authDomain: "infofilter-encuesta.firebaseapp.com",
-  projectId: "infofilter-encuesta",
-  storageBucket: "infofilter-encuesta.firebasestorage.app",
-  messagingSenderId: "145086399336",
-  appId: "1:145086399336:web:baa01ce1ac5ccc1f36ccdd"
+  apiKey: "AIzaSyBF7nV9afL4EesYpyaUpzMK8CIboodmoH4",
+  authDomain: "infofilter.firebaseapp.com",
+  projectId: "infofilter",
+  storageBucket: "infofilter.firebasestorage.app",
+  messagingSenderId: "650100620351",
+  appId: "1:650100620351:web:dd389c5f40ca635a06cc8a"
 };
 
 /* ══════════════════════════════════════════════════════════════
