@@ -22,14 +22,15 @@ var firebaseConfig = {
    ══════════════════════════════════════════════════════════════ */
 var db = null;
 
+var _firebaseRetries = 0;
 function initFirebase() {
   if (typeof firebase === 'undefined') {
-    // Firebase aún no cargó (async) — reintentamos en 500ms
-    setTimeout(initFirebase, 500);
+    if (_firebaseRetries++ < 20) setTimeout(initFirebase, 500); // hasta 10s de espera
+    else console.warn('Firebase SDK no cargó después de 10s');
     return;
   }
   try {
-    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     registerPageVisit();
     loadResponseCount();
