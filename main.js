@@ -7,13 +7,13 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  🔧 CONFIGURACIÓN FIREBASE — EDITA ESTOS VALORES            ║
 // ╚══════════════════════════════════════════════════════════════╝
-var firebaseConfig = {
+var FIREBASE_CONFIG = {
   apiKey: "AIzaSyBF7nV9afL4EesYpyaUpzMK8CIboodmoH4",
   authDomain: "infofilter.firebaseapp.com",
   projectId: "infofilter",
   storageBucket: "infofilter.firebasestorage.app",
   messagingSenderId: "650100620351",
-  appId: "1:650100620351:web:dd389c5f40ca635a06cc8a"
+  appId: "1:650100620351:web:6525288aa47e12d506cc8a"
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -22,15 +22,14 @@ var firebaseConfig = {
    ══════════════════════════════════════════════════════════════ */
 var db = null;
 
-var _firebaseRetries = 0;
 function initFirebase() {
   if (typeof firebase === 'undefined') {
-    if (_firebaseRetries++ < 20) setTimeout(initFirebase, 500); // hasta 10s de espera
-    else console.warn('Firebase SDK no cargó después de 10s');
+    // Firebase aún no cargó (async) — reintentamos en 500ms
+    setTimeout(initFirebase, 500);
     return;
   }
   try {
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.firestore();
     registerPageVisit();
     loadResponseCount();
@@ -122,15 +121,19 @@ async function saveSurveyResponse(payload) {
     Object.keys(payload.answers).forEach(function(qid) {
       var a = payload.answers[qid];
       answersClean['q' + qid] = sanitizeForFirestore({
-        type:    SURVEY_DATA.filter(function(q){ return q.id === Number(qid); })[0]
-                   ? SURVEY_DATA.filter(function(q){ return q.id === Number(qid); })[0].type
-                   : 'unknown',
-        correct: a.correct === true ? true : a.correct === false ? false : null,
-        points:  typeof a.points === 'number' ? a.points : 0,
-        chosen:  typeof a.chosen === 'number' ? a.chosen : null,
-        choices: Array.isArray(a.choices) ? a.choices : null
+        type:        SURVEY_DATA.filter(function(q){ return q.id === Number(qid); })[0]
+                       ? SURVEY_DATA.filter(function(q){ return q.id === Number(qid); })[0].type
+                       : 'unknown',
+        correct:     a.correct === true ? true : a.correct === false ? false : null,
+        points:      typeof a.points === 'number' ? a.points : 0,
+        chosen:      typeof a.chosen === 'number' ? a.chosen : null,
+        choices:     Array.isArray(a.choices) ? a.choices : null,
+        intentValue: a.intentValue || null
       });
     });
+
+    var intentAnswer = surveyState.answers[11];
+    var purchaseIntent = intentAnswer ? intentAnswer.intentValue : null;
 
     // Crear documento nuevo con ID automático
     var ref = await db.collection('survey_responses').add({
@@ -138,6 +141,7 @@ async function saveSurveyResponse(payload) {
       score:          Number(payload.score),
       level:          String(payload.level),
       audience:       String(payload.audience),
+      purchase_intent: purchaseIntent,
       completionTime: payload.completionTime ? Number(payload.completionTime) : null,
       userAgent:      navigator.userAgent.substring(0, 120),
       dimensions: {
@@ -301,6 +305,18 @@ var SURVEY_DATA = [
       {text:'Me queda la lección de verificar antes', value:2}
     ],
     feedback:{neutral:'📋 Tu respuesta revela tu actitud ante el error informativo. La corrección activa es uno de los gestos más valiosos en el ecosistema digital.'}
+  },
+  {
+    id:11, type:'intent', category:'intencion', typeLabel:'💡 Última pregunta',
+    question:'Después de lo que acabas de experimentar, ¿estarías dispuesto/a a pagar por un programa completo de alfabetización mediática como InfoFilter?',
+    options:[
+      {text:'Sí, pagaría por acceso completo al programa',         intentValue:'si_pagaria',     icon:'✅'},
+      {text:'Sí, si el precio es accesible (menos de $50.000 COP)', intentValue:'si_precio_ok',   icon:'💰'},
+      {text:'Lo usaría si fuera gratuito, pero no pagaría',        intentValue:'solo_gratis',     icon:'🆓'},
+      {text:'No, no me interesa el producto',                      intentValue:'no_interesa',     icon:'❌'},
+      {text:'Dependería del contenido y las reseñas',              intentValue:'depende',         icon:'🤔'}
+    ],
+    feedback:{neutral:'📊 ¡Gracias! Tu respuesta nos ayuda a entender cómo hacer que InfoFilter llegue a más personas.'}
   }
 ];
 
@@ -442,6 +458,13 @@ function selectScale(qid, idx, val) {
   renderQuestion(surveyState.current);
 }
 
+function selectIntent(qid, idx) {
+  var q   = SURVEY_DATA.filter(function(x){ return x.id === qid; })[0];
+  var opt = q.options[idx];
+  surveyState.answers[qid] = { chosen:idx, intentValue: opt.intentValue, points:0, correct:null };
+  renderQuestion(surveyState.current);
+}
+
 function renderQuestion(idx) {
   var q     = SURVEY_DATA[idx];
   var total = SURVEY_DATA.length;
@@ -495,6 +518,18 @@ function renderQuestion(idx) {
       html += '<button class="q-scale-btn' + (sel ? ' selected' : '') + '" onclick="selectScale(' + q.id + ',' + i + ',' + q.valueMap[i] + ')">' + val + '</button>';
     });
     html += '</div><div class="q-scale-labels"><span>' + q.scaleLabels[0] + '</span><span>' + q.scaleLabels[1] + '</span></div>';
+  }
+  else if (q.type === 'intent') {
+    html += '<p class="q-text">' + q.question + '</p><div class="q-options">';
+    q.options.forEach(function(opt, i){
+      var sel = ans && ans.chosen === i;
+      var cls = 'q-option q-intent-option' + (sel ? ' selected' : '');
+      html += '<button class="' + cls + '" onclick="selectIntent(' + q.id + ',' + i + ')">'
+            + '<span class="q-intent-icon">' + opt.icon + '</span>'
+            + '<span>' + opt.text + '</span>'
+            + '</button>';
+    });
+    html += '</div>';
   }
 
   if (ans) {
